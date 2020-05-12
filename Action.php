@@ -19,15 +19,15 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             die();
         }
 
-        include_once 'Meting.php';
+        include_once 'libs\Meting.php';
         $m = new Metowolf\Meting($server);
         $m->format(true);
 
-//        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
-//        $cookie = $plugin->cookie;
-//        if ($server == 'netease' && !empty($cookie)) {
-//            $m->cookie($cookie);
-//        }
+        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+        $cookie = $plugin->cookie;
+        if ($server == 'netease' && !empty($cookie)) {
+            $m->cookie($cookie);
+        }
 
         // TODO 缓存
 
@@ -35,8 +35,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
         switch ($type) {
             case 'audio':
                 $type = 'url';
-                $arg2 = 320;
-//                $arg2 = $plugin->bitrate;
+                $arg2 = $plugin->bitrate;
                 break;
             case 'cover':
                 $type = 'pic';
@@ -58,10 +57,14 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             case 'pic':
                 $url = $data['url'];
                 if (empty($url)) {
-                    http_response_code(403);
-                    die();
+                    if ($server != 'netease') {
+                        http_response_code(403);
+                        die();
+                    }
+                    $url = 'https://music.163.com/song/media/outer/url?id=' . $id . '.mp3';
+                } else {
+                    $url = preg_replace('/^http:/', 'https:', $url);
                 }
-                $url = preg_replace('/^http:/', 'https:', $url);
                 $this->response->redirect($url);
                 exit;
             case 'lyric':
