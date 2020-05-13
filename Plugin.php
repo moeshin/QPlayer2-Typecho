@@ -14,7 +14,6 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
 {
     public const verJQ = '3.5.1';
     public const verMarquee = '1.5.0';
-    public const verQPlayer = '2.0.5';
 
     /**
      * 激活插件方法,如果激活失败,直接抛出异常
@@ -150,7 +149,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
     public static function header()
     {
         $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
-        $url = Typecho_Common::url(basename(__DIR__) . '/assets', Helper::options()->pluginUrl);
+        $url = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
         $cdn = $plugin->cdn == 'true';
         if ($plugin->jQuery == 'true') {
             echo '<script src="'
@@ -159,12 +158,11 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
         }
         $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery.marquee@' . self::verMarquee : $url;
         echo '<script src="' . $prefix . '/jquery.marquee.min.js"></script>';
-        $prefix = $cdn ? 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2@' . self::verQPlayer : $url;
-        echo '<script src="' . $prefix . '/QPlayer.js"></script>';
-        echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.css">';
         $prefix = $cdn ? 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2-Typecho@'
-            . Typecho_Plugin::parseInfo(__FILE__)['version'] : $url;
+            . Typecho_Plugin::parseInfo(__FILE__)['version'] . '/assets' : $url;
+        echo '<script src="' . $prefix . '/QPlayer.js"></script>';
         echo '<script src="' . $prefix . '/QPlayer-plugin.js"></script>';
+        echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.css">';
 ?>
 <script>
 $(function () {
