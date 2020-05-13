@@ -29,7 +29,7 @@ JSON 数组
     "audio": "https://cdn.jsdelivr.net/gh/moeshin/QPlayer-res/Nightglow.mp3",
     "cover": "https://cdn.jsdelivr.net/gh/moeshin/QPlayer-res/Nightglow.jpg",
     "lrc": "https://cdn.jsdelivr.net/gh/moeshin/QPlayer-res/Nightglow.lrc"
-    }, {
+}, {
     "name": "やわらかな光",
     "artist": "やまだ豊",
     "audio": "https://cdn.jsdelivr.net/gh/moeshin/QPlayer-res/やわらかな光.mp3",
@@ -37,6 +37,12 @@ JSON 数组
     "lyrics": "[00:00.00]请欣赏"
 }]
 ```
+
+### 鸣谢
+
+* [QPlayer](https://github.com/Jrohy/QPlayer)
+* [Meting](https://github.com/metowolf/Meting)
+* [APlayer-Typecho](https://github.com/MoePlayer/APlayer-Typecho)
 
 
 [0]: https://zh.wikipedia.org/zh-hans/LRC%E6%A0%BC%E5%BC%8F
