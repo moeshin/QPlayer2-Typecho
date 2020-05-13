@@ -12,6 +12,10 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
 {
+    public const verJQ = '3.5.1';
+    public const verMarquee = '1.5.0';
+    public const verQPlayer = '2.0.5';
+
     /**
      * 激活插件方法,如果激活失败,直接抛出异常
      *
@@ -51,6 +55,16 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
+        $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
+            'cdn',
+            array(
+                'true' => _t('是'),
+                'false' => _t('否')
+            ),
+            'true',
+            _t('CDN'),
+            _t('使用 jsDelivr CDN 免费加速 js、css 文件')
+        ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'jQuery',
             array(
@@ -136,13 +150,22 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
     public static function header()
     {
         $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
-        $url = Typecho_Common::url('QPlayer2/assets/', Helper::options()->pluginUrl);
+        $url = Typecho_Common::url(basename(__DIR__) . '/assets', Helper::options()->pluginUrl);
+        $cdn = $plugin->cdn == 'true';
         if ($plugin->jQuery == 'true') {
-            echo '<script src="' . $url . 'jquery.min.js"></script>';
-        }?>
-<script src="<?php echo $url; ?>jquery.marquee.min.js"></script>
-<script src="<?php echo $url; ?>QPlayer.js"></script>
-<script src="<?php echo $url; ?>QPlayer-plugin.js"></script>
+            echo '<script src="'
+                . ($cdn ? 'https://cdn.jsdelivr.net/npm/jquery@' . self::verJQ . '/dist' : $url)
+                . '/jquery.min.js"></script>';
+        }
+        $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery.marquee@' . self::verMarquee : $url;
+        echo '<script src="' . $prefix . '/jquery.marquee.min.js"></script>';
+        $prefix = $cdn ? 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2@' . self::verQPlayer : $url;
+        echo '<script src="' . $prefix . '/QPlayer.js"></script>';
+        echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.css">';
+        $prefix = $cdn ? 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2-Typecho@'
+            . Typecho_Plugin::parseInfo(__FILE__)['version'] : $url;
+        echo '<script src="' . $prefix . '/QPlayer-plugin.js"></script>';
+?>
 <script>
 $(function () {
 var q = QPlayer;
@@ -154,7 +177,6 @@ q.isShuffle = <?php echo $plugin->isShuffle; ?>;
 q.setColor("<?php echo $plugin->color; ?>");
 });
 </script>
-<link rel="stylesheet" href="<?php echo $url; ?>QPlayer.css">
 <?php
     }
 }
