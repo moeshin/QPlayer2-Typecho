@@ -28,6 +28,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             throw new Typecho_Plugin_Exception(_t('缺少 openssl 或 mcrypt 拓展'));
         }
         Helper::addAction('QPlayer2', 'QPlayer2_Action');
+        Typecho_Plugin::factory('Widget_Archive')->header = array('QPlayer2_Plugin', 'header');
     }
 
     /**
@@ -68,13 +69,13 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             _t('默认：<span style="color: #EE1122">#EE1122</span>')
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
-            'isAutoplay',
+            'isRotate',
             array(
                 'true' => _t('是'),
                 'false' => _t('否')
             ),
-            'false',
-            _t('是否自动播放')
+            'true',
+            _t('是否旋转封面')
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'isShuffle',
@@ -112,14 +113,14 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
     "cover": "https://cdn.jsdelivr.net/gh/moeshin/QPlayer-res/やわらかな光.jpg"
 }]',
             _t('歌曲列表'),
-            _t('JSON 格式的数组，具体属性请看 <a href="https://github.com/moeshin/QPlayer2#list-item">这里</a><br>您也可以添加：<br><code>{"server": "netease", "type": "playlist"， "id": "3136952023"}</code><br>来引入第三方资源<br><code>server</code>：netease、tencent、baidu、xiami、kugou<br><code>type</code>：playlist、song、album、artist')
+            _t('JSON 格式的数组，具体属性请看 <a href="https://github.com/moeshin/QPlayer2#list-item">这里</a><br>您也可以添加，例如：私人雷达<br><code>{"server": "netease", "type": "playlist", "id": "3136952023"}</code><br>来引入第三方资源，此功能基于 <a href="https://github.com/metowolf/Meting">Meting</a><br><code>server</code>：netease、tencent、baidu、xiami、kugou<br><code>type</code>：playlist、song、album、artist')
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Textarea(
             'cookie',
             null,
             '',
             _t('网易云音乐 Cookie'),
-            _t('如果您是网易云音乐的会员，可以将您的 cookie 填入此处来获取云盘等付费资源，听歌将不会计入下载次数。<br><strong>如果不知道这是什么意思，忽略即可。</strong>')
+            _t('如果您是网易云音乐的会员或者使用私人雷达，可以将您的 cookie 的 MUSIC_U 填入此处来获取云盘等付费资源，听歌将不会计入下载次数。<br><strong>如果不知道这是什么意思，忽略即可。</strong>')
         ));
     }
 
@@ -131,4 +132,29 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      * @return void
      */
     public static function personalConfig(Typecho_Widget_Helper_Form $form) {}
+
+    public static function header()
+    {
+        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+        $url = Typecho_Common::url('QPlayer2/assets/', Helper::options()->pluginUrl);
+        if ($plugin->jQuery == 'true') {
+            echo '<script src="' . $url . 'jquery.min.js"></script>';
+        }?>
+<script src="<?php echo $url; ?>jquery.marquee.min.js"></script>
+<script src="<?php echo $url; ?>QPlayer.js"></script>
+<script src="<?php echo $url; ?>QPlayer-plugin.js"></script>
+<script>
+$(function () {
+var q = QPlayer;
+var plugin = q.plugin;
+plugin.api = "<?php echo Typecho_Common::url('action/QPlayer2', Helper::options()->index); ?>";
+plugin.setList(<?php echo $plugin->list; ?>);
+q.isRotate = <?php echo $plugin->isRotate; ?>;
+q.isShuffle = <?php echo $plugin->isShuffle; ?>;
+q.setColor("<?php echo $plugin->color; ?>");
+});
+</script>
+<link rel="stylesheet" href="<?php echo $url; ?>QPlayer.css">
+<?php
+    }
 }

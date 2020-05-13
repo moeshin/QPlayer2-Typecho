@@ -19,7 +19,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             die();
         }
 
-        include_once 'libs\Meting.php';
+        include_once 'libs/Meting.php';
         $m = new Metowolf\Meting($server);
         $m->format(true);
 
@@ -39,7 +39,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
                 break;
             case 'cover':
                 $type = 'pic';
-                $arg2 = 2;
+                $arg2 = 64;
                 break;
             case 'artist':
                 $arg2 = $request->get('limit', 50);
