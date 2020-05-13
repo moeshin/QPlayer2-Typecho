@@ -7,7 +7,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
  *
  * @package QPlayer2
  * @author moeshin
- * @version 2.0.0
+ * @version 2.0.1
  * @link https://github.com/moeshin/QPlayer2-Typecho
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
