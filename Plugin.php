@@ -2,6 +2,11 @@
 if (!defined('__TYPECHO_ROOT_DIR__')) {
     exit;
 }
+
+include_once 'libs/cache/Cache.php';
+
+use QPlayer\Cache\Cache;
+
 /**
  * 一款简洁小巧的 HTML5 底部悬浮音乐播放器
  *
@@ -40,9 +45,15 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      * @static
      * @access public
      * @return void
+     * @throws Exception
      */
     public static function deactivate() {
         Helper::removeAction('QPlayer2');
+        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+        $cacheType = $plugin->cacheType;
+        if ($cacheType == 'database') {
+            Cache::Builder($cacheType)->uninstall();
+        }
     }
 
     /**
@@ -135,6 +146,37 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             _t('网易云音乐 Cookie'),
             _t('如果您是网易云音乐的会员或者使用私人雷达，可以将您的 cookie 的 MUSIC_U 填入此处来获取云盘等付费资源，听歌将不会计入下载次数。<br><strong>如果不知道这是什么意思，忽略即可。</strong>')
         ));
+        $form->addInput(new Typecho_Widget_Helper_Form_Element_Hidden(
+            'cacheTypeLast',
+            null,
+            'none'
+        ));
+        $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
+            'cacheType',
+            array(
+                'none' => _t('无'),
+                'database' => _t('数据库'),
+                'redis' => _t('Redis'),
+                'memcached' => _t('Memcached'),
+            ),
+            'none',
+            _t('缓存类型'),
+            _t('缓存歌曲解析信息，降低服务器压力')
+        ));
+        $form->addInput(new Typecho_Widget_Helper_Form_Element_Text(
+            'cacheHost',
+            null,
+            '127.0.0.1',
+            _t('缓存地址'),
+            _t('若使用数据库缓存，请忽略此项。默认：127.0.0.1')
+        ));
+        $form->addInput(new Typecho_Widget_Helper_Form_Element_Text(
+            'cachePort',
+            null,
+            '',
+            _t('缓存端口'),
+            _t('若使用数据库缓存，请忽略此项。默认，Memcached：11211；Redis：6379')
+        ));
     }
 
     /**
@@ -145,6 +187,37 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      * @return void
      */
     public static function personalConfig(Typecho_Widget_Helper_Form $form) {}
+
+    /**
+     * 处理配置信息
+     *
+     * @access public
+     * @param array $settings 配置值
+     * @param boolean $isInit 是否为初始化
+     * @return void
+     * @throws Exception
+     * @noinspection PhpUnused
+     */
+    public static function configHandle($settings, $isInit)
+    {
+        if (!$isInit) {
+            $cacheType = $settings['cacheType'];
+            $cacheTypeLast = $settings['cacheTypeLast'];
+            if ($cacheType != $cacheTypeLast) {
+                if ($cacheType != 'none') {
+                    $cache = Cache::Builder($cacheType, $settings['cacheHost'], $settings['cachePort']);
+                    $cache->install();
+                    $cache->test();
+                }
+                if ($cacheTypeLast == 'database') {
+                    $cache = Cache::Builder($cacheTypeLast);
+                    $cache->uninstall();
+                }
+                $settings['cacheTypeLast'] = $cacheType;
+            }
+        }
+        Helper::configPlugin('QPlayer2', $settings);
+    }
 
     public static function header()
     {

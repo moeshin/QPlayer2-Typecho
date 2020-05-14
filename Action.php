@@ -1,7 +1,12 @@
 <?php
+
 if (!defined('__TYPECHO_ROOT_DIR__')) {
     exit;
 }
+
+include_once 'libs/cache/Cache.php';
+
+use QPlayer\Cache\Cache;
 
 class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
 {
@@ -29,27 +34,44 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             $m->cookie($cookie);
         }
 
-        // TODO 缓存
-
-        $arg2 = null;
-        switch ($type) {
-            case 'audio':
-                $type = 'url';
-                $arg2 = $plugin->bitrate;
-                break;
-            case 'cover':
-                $type = 'pic';
-                $arg2 = 64;
-                break;
-            case 'artist':
-                $arg2 = $request->get('limit', 50);
-                break;
-            case 'lrc':
-                $type = 'lyric';
-                break;
+        $cacheType = $plugin->cacheType;
+        $isUesCache = $cacheType != 'none';
+        if ($isUesCache) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $cache = Cache::Builder($cacheType, $plugin->cacheHost, $plugin->cachePort);
         }
-
-        $data = $m->$type($id, $arg2);
+        $key = $server . $type . $id;
+        if ($isUesCache) {
+            $data = $cache->get($key);
+        }
+        if (!$isUesCache || empty($data)) {
+            $arg2 = null;
+            $expire = 86400;
+            switch ($type) {
+                case 'audio':
+                    $type = 'url';
+                    $arg2 = $plugin->bitrate;
+                    $expire = 1200;
+                    break;
+                case 'cover':
+                    $type = 'pic';
+                    $arg2 = 64;
+                    break;
+                case 'lrc':
+                    $type = 'lyric';
+                    break;
+                case 'artist':
+                    $arg2 = 50;
+                    $expire = 7200;
+                    break;
+                default:
+                    $expire = 7200;
+            }
+            $data = $m->$type($id, $arg2);
+            if ($isUesCache) {
+                $cache->set($key, $data, $expire);
+            }
+        }
         $data = json_decode($data, true);
 
         switch ($type) {
