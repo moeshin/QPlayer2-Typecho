@@ -17,8 +17,8 @@ use QPlayer\Cache\Cache;
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
 {
-    public const verJQ = '3.5.1';
-    public const verMarquee = '1.5.0';
+    const verJQ = '3.5.1';
+    const verMarquee = '1.5.0';
 
     /**
      * 激活插件方法,如果激活失败,直接抛出异常
@@ -178,7 +178,8 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             _t('缓存端口'),
             _t('若使用数据库缓存，请忽略此项。默认，Memcached：11211；Redis：6379')
         ));
-        $form->addItem((new Typecho_Widget_Helper_Layout())
+        $item = new Typecho_Widget_Helper_Layout();
+        $form->addItem($item
             ->html('<a target="_blank" href="' . $action . '?do=flush">
 <button type="button" class="btn primary">' . _t('清除缓存') . '</button></a>'));
     }
@@ -214,7 +215,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
                     $settings['cacheHost'],
                     $settings['cachePort']
                 );
-                $fun = ['QPlayer\Cache\Cache', 'Build'];
+                $fun = array('QPlayer\Cache\Cache', 'Build');
                 /** @var QPlayer\Cache\Cache $cache */
                 if ($cacheType != 'none') {
                     $cache = call_user_func_array($fun, $args);
@@ -243,8 +244,12 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
         }
         $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery.marquee@' . self::verMarquee : $url;
         echo '<script src="' . $prefix . '/jquery.marquee.min.js"></script>';
-        $prefix = $cdn ? 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2-Typecho@'
-            . Typecho_Plugin::parseInfo(__FILE__)['version'] . '/assets' : $url;
+        if ($cdn) {
+            $info = Typecho_Plugin::parseInfo(__FILE__);
+            $prefix = 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2-Typecho@' . $info['version'] . '/assets';
+        } else {
+            $prefix = $url;
+        }
         echo '<script src="' . $prefix . '/QPlayer.js"></script>';
         echo '<script src="' . $prefix . '/QPlayer-plugin.js"></script>';
         echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.css">';

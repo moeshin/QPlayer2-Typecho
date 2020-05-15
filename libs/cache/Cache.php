@@ -48,10 +48,15 @@ abstract class Cache
             throw new Exception("Cache type error: $type");
         }
         include_once("$type.php");
-        $type = 'QPlayer\Cache\\' . $type;
+        $type = __NAMESPACE__ . '\\' . $type;
         return new $type($host, $port);
     }
 
+    /**
+     * @param $plugin
+     * @return Cache
+     * @throws Exception
+     */
     public static function BuildWithPlugin($plugin) {
         return self::Build($plugin->cacheType, $plugin->cacheHost, $plugin->cachePort);
     }

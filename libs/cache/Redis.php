@@ -22,7 +22,7 @@ class Redis extends Cache
 
     public function set($key, $data, $expire = 86400)
     {
-        $this->redis->set($this->getKey($key), $data, $expire);
+        $this->redis->setex($this->getKey($key), $expire, $data);
     }
 
     public function get($key)
