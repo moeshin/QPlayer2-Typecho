@@ -10,10 +10,30 @@ use QPlayer\Cache\Cache;
 
 class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
 {
+    /**
+     * @throws Exception
+     */
     public function action()
     {
         $request = $this->request;
 
+        $do = $request->get('do');
+        if ($do == 'flush') {
+            $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+            try {
+                if ($plugin->cacheType == 'none') {
+                   echo _t('没有配置缓存！');
+                } else {
+                    Cache::BuildWithPlugin($plugin)->flush();
+                    echo _t('操作成功！');
+                }
+                echo _t('5 秒后自动关闭！');
+                echo '<script>setTimeout(window.close, 5000);</script>';
+            } catch (Exception $e) {
+                throw new Exception(_t('操作失败！'), 0, $e);
+            }
+            return;
+        }
 
         $server = $request->get('server');
         $type = $request->get('type');
@@ -34,10 +54,9 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             $m->cookie($cookie);
         }
 
-        $cacheType = $plugin->cacheType;
-        $isUesCache = $cacheType != 'none';
+        $isUesCache = $plugin->cacheType != 'none';
         if ($isUesCache) {
-            $cache = Cache::Builder($cacheType, $plugin->cacheHost, $plugin->cachePort);
+            $cache = Cache::BuildWithPlugin($plugin);
         }
         $key = $server . $type . $id;
         if ($isUesCache) {

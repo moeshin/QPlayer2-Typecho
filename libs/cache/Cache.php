@@ -7,13 +7,17 @@ use Exception;
 
 abstract class Cache
 {
-    protected $prefix = 'QPlayer_';
+    protected $prefix = 'QPlayer2_';
 
     public abstract function set($key, $data, $expire = 86400);
     public abstract function get($key);
 
     public function install() {}
     public function uninstall() {}
+
+    public function flush() {
+        $this->uninstall();
+    }
 
     /**
      * @throws Exception
@@ -37,7 +41,7 @@ abstract class Cache
      * @return Cache
      * @throws Exception
      */
-    public static function Builder($type, $host, $port)
+    public static function Build($type, $host, $port)
     {
         $type = ucfirst($type);
         if (!in_array($type, array('Database', 'Memcached', 'Redis'))) {
@@ -46,5 +50,9 @@ abstract class Cache
         include_once("$type.php");
         $type = 'QPlayer\Cache\\' . $type;
         return new $type($host, $port);
+    }
+
+    public static function BuildWithPlugin($plugin) {
+        return self::Build($plugin->cacheType, $plugin->cacheHost, $plugin->cachePort);
     }
 }

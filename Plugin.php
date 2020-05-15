@@ -52,7 +52,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
         $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
         $cacheType = $plugin->cacheType;
         if ($cacheType != 'none') {
-            Cache::Builder($cacheType, $plugin->cacheHost, $plugin->cachePort)->uninstall();
+            Cache::Build($cacheType, $plugin->cacheHost, $plugin->cachePort)->uninstall();
         }
     }
 
@@ -65,6 +65,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
+        $action = Typecho_Common::url('action/QPlayer2', Helper::options()->index);
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'cdn',
             array(
@@ -177,6 +178,9 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             _t('缓存端口'),
             _t('若使用数据库缓存，请忽略此项。默认，Memcached：11211；Redis：6379')
         ));
+        $form->addItem((new Typecho_Widget_Helper_Layout())
+            ->html('<a target="_blank" href="' . $action . '?do=flush">
+<button type="button" class="btn primary">' . _t('清除缓存') . '</button></a>'));
     }
 
     /**
@@ -210,7 +214,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
                     $settings['cacheHost'],
                     $settings['cachePort']
                 );
-                $fun = ['QPlayer\Cache\Cache', 'Builder'];
+                $fun = ['QPlayer\Cache\Cache', 'Build'];
                 /** @var QPlayer\Cache\Cache $cache */
                 if ($cacheType != 'none') {
                     $cache = call_user_func_array($fun, $args);

@@ -63,4 +63,9 @@ class Database extends Cache
     {
         $this->db->query("DROP TABLE IF EXISTS `$this->table`;");
     }
+
+    public function flush()
+    {
+        $this->db->query($this->db->delete($this->table));
+    }
 }
