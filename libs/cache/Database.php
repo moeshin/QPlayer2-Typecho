@@ -66,6 +66,6 @@ class Database extends Cache
 
     public function flush()
     {
-        $this->db->query($this->db->delete($this->table));
+        $this->db->truncate($this->table);
     }
 }

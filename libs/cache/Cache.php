@@ -60,4 +60,13 @@ abstract class Cache
     public static function BuildWithPlugin($plugin) {
         return self::Build($plugin->cacheType, $plugin->cacheHost, $plugin->cachePort);
     }
+
+    public static function UninstallWithPlugin($plugin) {
+        try {
+            $cache = self::BuildWithPlugin($plugin);
+            $cache->uninstall();
+        } catch (Exception $e) {
+            echo "<pre>$e</pre>";
+        }
+    }
 }

@@ -49,10 +49,10 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      */
     public static function deactivate() {
         Helper::removeAction('QPlayer2');
-        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+        $plugin = self::getConfig();
         $cacheType = $plugin->cacheType;
         if ($cacheType != 'none') {
-            Cache::Build($cacheType, $plugin->cacheHost, $plugin->cachePort)->uninstall();
+            Cache::UninstallWithPlugin($plugin);
         }
     }
 
@@ -147,18 +147,13 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             _t('网易云音乐 Cookie'),
             _t('如果您是网易云音乐的会员或者使用私人雷达，可以将您的 cookie 的 MUSIC_U 填入此处来获取云盘等付费资源，听歌将不会计入下载次数。<br><strong>如果不知道这是什么意思，忽略即可。</strong>')
         ));
-        $form->addInput(new Typecho_Widget_Helper_Form_Element_Hidden(
-            'cacheLast',
-            null,
-            '["none"]'
-        ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'cacheType',
             array(
                 'none' => _t('无'),
                 'database' => _t('数据库'),
-                'redis' => _t('Redis'),
                 'memcached' => _t('Memcached'),
+                'redis' => _t('Redis')
             ),
             'none',
             _t('缓存类型'),
@@ -205,36 +200,54 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      */
     public static function configHandle($settings, $isInit)
     {
+        /** @var QPlayer\Cache\Cache $cache */
         if (!$isInit) {
-            $cacheType = $settings['cacheType'];
-            $cacheLast = json_decode($settings['cacheLast'], true);
-            $cacheLastType = $cacheLast[0];
-            if ($cacheType != $cacheLastType) {
-                $args = array(
-                    $cacheType,
-                    $settings['cacheHost'],
-                    $settings['cachePort']
-                );
-                $fun = array('QPlayer\Cache\Cache', 'Build');
-                /** @var QPlayer\Cache\Cache $cache */
-                if ($cacheType != 'none') {
-                    $cache = call_user_func_array($fun, $args);
+            $plugin = self::getConfig();
+            $cacheTypeNow = $settings['cacheType'];
+            $cacheArgs = array(
+                $cacheTypeNow,
+                $settings['cacheHost'],
+                $settings['cachePort']
+            );
+            $cacheTypeLast = $plugin->cacheType;
+            $cacheBuild = array('QPlayer\Cache\Cache', 'Build');
+            $isNotNoneNow = $cacheTypeNow != 'none';
+            if ($cacheTypeNow != $cacheTypeLast) {
+                if ($isNotNoneNow) {
+                    $cache = call_user_func_array($cacheBuild, $cacheArgs);
                     $cache->install();
                     $cache->test();
                 }
-                if ($cacheLastType != 'none') {
-                    $cache = call_user_func_array($fun, $cacheLast);
-                    $cache->uninstall();
+                if ($cacheTypeLast != 'none') {
+                    Cache::UninstallWithPlugin($plugin);
                 }
-                $settings['cacheLast'] = json_encode($args);
+            } elseif ($isNotNoneNow && $cacheTypeNow != 'database' && self::compareCacheConfig($settings, $plugin)) {
+                $cache = call_user_func_array($cacheBuild, $cacheArgs);
+                $cache->test();
             }
         }
         Helper::configPlugin('QPlayer2', $settings);
     }
 
+    private static function compareCacheConfig($now, $last) {
+        $keys = array('cacheHost', 'cachePort');
+        $length = count($keys);
+        for ($i = 0; $i < $length; ++$i) {
+            $key = $keys[$i];
+            if ($now[$key] != $last->$key) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static function getConfig() {
+        return Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+    }
+
     public static function header()
     {
-        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+        $plugin = self::getConfig();
         $url = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
         $cdn = $plugin->cdn == 'true';
         if ($plugin->jQuery == 'true') {

@@ -39,7 +39,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
         $type = $request->get('type');
         $id = $request->get('id');
 
-        if (!$this->check($server, $type, $id)) {
+        if (!$this->test($server, $type, $id)) {
             http_response_code(403);
             die();
         }
@@ -132,7 +132,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
         echo json_encode($data);
     }
 
-    private function check($server, $type, $id)
+    private function test($server, $type, $id)
     {
         if (!in_array($server, array('netease', 'tencent', 'baidu', 'xiami', 'kugou'))) {
             return false;
