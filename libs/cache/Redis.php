@@ -22,11 +22,16 @@ class Redis extends Cache
 
     public function set($key, $data, $expire = 86400)
     {
-        $this->redis->set($key, $data, $expire);
+        $this->redis->set($this->getKey($key), $data, $expire);
     }
 
     public function get($key)
     {
-        return $this->redis->get($key);
+        return $this->redis->get($this->getKey($key));
+    }
+
+    public function uninstall()
+    {
+        $this->redis->del($this->redis->keys($this->prefix . '*'));
     }
 }

@@ -28,7 +28,9 @@ class Database extends Cache
 
     public function get($key)
     {
+        // 回收过期数据
         $this->db->query($this->db->delete($this->table)->where('time <= ?', time()));
+
         $row = $this->db->fetchRow($this->db->select('data')->from($this->table)->where('key = ?', md5($key)));
         @$data = $row['data'];
         return $data;

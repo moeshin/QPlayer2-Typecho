@@ -51,8 +51,8 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
         Helper::removeAction('QPlayer2');
         $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
         $cacheType = $plugin->cacheType;
-        if ($cacheType == 'database') {
-            Cache::Builder($cacheType)->uninstall();
+        if ($cacheType != 'none') {
+            Cache::Builder($cacheType, $plugin->cacheHost, $plugin->cachePort)->uninstall();
         }
     }
 
@@ -147,9 +147,9 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             _t('如果您是网易云音乐的会员或者使用私人雷达，可以将您的 cookie 的 MUSIC_U 填入此处来获取云盘等付费资源，听歌将不会计入下载次数。<br><strong>如果不知道这是什么意思，忽略即可。</strong>')
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Hidden(
-            'cacheTypeLast',
+            'cacheLast',
             null,
-            'none'
+            '["none"]'
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'cacheType',
@@ -202,18 +202,26 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
     {
         if (!$isInit) {
             $cacheType = $settings['cacheType'];
-            $cacheTypeLast = $settings['cacheTypeLast'];
-            if ($cacheType != $cacheTypeLast) {
+            $cacheLast = json_decode($settings['cacheLast'], true);
+            $cacheLastType = $cacheLast[0];
+            if ($cacheType != $cacheLastType) {
+                $args = array(
+                    $cacheType,
+                    $settings['cacheHost'],
+                    $settings['cachePort']
+                );
+                $fun = ['QPlayer\Cache\Cache', 'Builder'];
+                /** @var QPlayer\Cache\Cache $cache */
                 if ($cacheType != 'none') {
-                    $cache = Cache::Builder($cacheType, $settings['cacheHost'], $settings['cachePort']);
+                    $cache = call_user_func_array($fun, $args);
                     $cache->install();
                     $cache->test();
                 }
-                if ($cacheTypeLast == 'database') {
-                    $cache = Cache::Builder($cacheTypeLast);
+                if ($cacheLastType != 'none') {
+                    $cache = call_user_func_array($fun, $cacheLast);
                     $cache->uninstall();
                 }
-                $settings['cacheTypeLast'] = $cacheType;
+                $settings['cacheLast'] = json_encode($args);
             }
         }
         Helper::configPlugin('QPlayer2', $settings);

@@ -4,10 +4,11 @@
 namespace QPlayer\Cache;
 
 use Exception;
-use ReflectionClass;
 
 abstract class Cache
 {
+    protected $prefix = 'QPlayer_';
+
     public abstract function set($key, $data, $expire = 86400);
     public abstract function get($key);
 
@@ -25,19 +26,25 @@ abstract class Cache
         }
     }
 
+    protected function getKey($key) {
+        return $this->prefix . md5($key);
+    }
+
     /**
      * @param string $type
-     * @param array $args
+     * @param string $host
+     * @param int $port
      * @return Cache
      * @throws Exception
-     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public static function Builder($type, ...$args) {
+    public static function Builder($type, $host, $port)
+    {
         $type = ucfirst($type);
         if (!in_array($type, array('Database', 'Memcached', 'Redis'))) {
             throw new Exception("Cache type error: $type");
         }
         include_once("$type.php");
-        return (new ReflectionClass('\QPlayer\Cache\\' . $type))->newInstanceArgs($args);
+        $type = 'QPlayer\Cache\\' . $type;
+        return new $type($host, $port);
     }
 }

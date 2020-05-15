@@ -37,14 +37,13 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
         $cacheType = $plugin->cacheType;
         $isUesCache = $cacheType != 'none';
         if ($isUesCache) {
-            /** @noinspection PhpUnhandledExceptionInspection */
             $cache = Cache::Builder($cacheType, $plugin->cacheHost, $plugin->cachePort);
         }
         $key = $server . $type . $id;
         if ($isUesCache) {
             $data = $cache->get($key);
         }
-        if (!$isUesCache || empty($data)) {
+        if (empty($data)) {
             $arg2 = null;
             $expire = 86400;
             switch ($type) {
