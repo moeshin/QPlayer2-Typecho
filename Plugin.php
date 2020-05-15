@@ -11,8 +11,8 @@ use QPlayer\Cache\Cache;
  * 一款简洁小巧的 HTML5 底部悬浮音乐播放器
  *
  * @package QPlayer2
- * @author moeshin
- * @version 2.0.1
+ * @author Moeshin
+ * @version 2.0.2
  * @link https://github.com/moeshin/QPlayer2-Typecho
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
@@ -145,7 +145,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             null,
             '',
             _t('网易云音乐 Cookie'),
-            _t('如果您是网易云音乐的会员或者使用私人雷达，可以将您的 cookie 的 MUSIC_U 填入此处来获取云盘等付费资源，听歌将不会计入下载次数。<br><strong>如果不知道这是什么意思，忽略即可。</strong>')
+            _t('如果您是网易云音乐的会员或者使用私人雷达，可以将您的 cookie 的 MUSIC_U 填入此处来获取云盘等付费资源，听歌将不会计入下载次数<br><strong>如果不知道这是什么意思，忽略即可</strong>')
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'cacheType',
@@ -251,9 +251,8 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
         $url = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
         $cdn = $plugin->cdn == 'true';
         if ($plugin->jQuery == 'true') {
-            echo '<script src="'
-                . ($cdn ? 'https://cdn.jsdelivr.net/npm/jquery@' . self::verJQ . '/dist' : $url)
-                . '/jquery.min.js"></script>';
+            $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery@' . self::verJQ . '/dist' : $url;
+            echo '<script src="' . $prefix  . '/jquery.min.js"></script>';
         }
         $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery.marquee@' . self::verMarquee : $url;
         echo '<script src="' . $prefix . '/jquery.marquee.min.js"></script>';
