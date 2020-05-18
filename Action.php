@@ -54,17 +54,14 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             $m->cookie($cookie);
         }
 
-        $isUesCache = $plugin->cacheType != 'none';
-        if ($isUesCache) {
-            $cache = Cache::BuildWithPlugin($plugin);
-        }
+        $cache = $plugin->cacheType == 'none' ? null : Cache::BuildWithPlugin($plugin);
         $key = $server . $type . $id;
-        if ($isUesCache) {
+        if ($cache != null) {
             $data = $cache->get($key);
         }
         if (empty($data)) {
             $arg2 = null;
-            $expire = 86400;
+            $expire = 7200;
             switch ($type) {
                 case 'audio':
                     $type = 'url';
@@ -74,62 +71,72 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
                 case 'cover':
                     $type = 'pic';
                     $arg2 = 64;
+                    $expire = 86400;
                     break;
                 case 'lrc':
                     $type = 'lyric';
+                    $expire = 86400;
                     break;
                 case 'artist':
                     $arg2 = 50;
-                    $expire = 7200;
                     break;
-                default:
-                    $expire = 7200;
             }
             $data = $m->$type($id, $arg2);
-            if ($isUesCache) {
+            $data = json_decode($data, true);
+            switch ($type) {
+                case 'url':
+                case 'pic':
+                    $url = $data['url'];
+                    if (empty($url)) {
+                        if ($server != 'netease') {
+                            http_response_code(403);
+                            die();
+                        }
+                        $url = 'https://music.163.com/song/media/outer/url?id=' . $id . '.mp3';
+                    } else {
+                        $url = preg_replace('/^http:/', 'https:', $url);
+                    }
+                    $data = $url;
+                    break;
+                case 'lyric':
+                    $data = $data['lyric'] . "\n" . $data['tlyric'];
+                    break;
+                default:
+                    $url = Typecho_Common::url('action/QPlayer2', Helper::options()->index);
+                    $array = array();
+                    foreach ($data as $v) {
+                        $prefix = $url . '?server=' . $v['source'];
+                        $array []= array(
+                            'name' => $v['name'],
+                            'artist' => implode(' / ', $v['artist']),
+                            'audio' => $prefix . '&type=audio&id=' . $v['url_id'],
+                            'cover' => $prefix . '&type=cover&id=' . $v['pic_id'],
+                            'lrc' => $prefix . '&type=lrc&id=' . $v['lyric_id'],
+                            'provider' => 'default'
+                        );
+                    }
+                    $data = json_encode($array);
+            }
+            if ($cache != null) {
                 $cache->set($key, $data, $expire);
             }
         }
-        $data = json_decode($data, true);
-
         switch ($type) {
             case 'url':
             case 'pic':
-                $url = $data['url'];
-                if (empty($url)) {
-                    if ($server != 'netease') {
-                        http_response_code(403);
-                        die();
-                    }
-                    $url = 'https://music.163.com/song/media/outer/url?id=' . $id . '.mp3';
-                } else {
-                    $url = preg_replace('/^http:/', 'https:', $url);
-                }
-                $this->response->redirect($url);
-                exit;
+            case 'audio':
+            case 'cover':
+                $this->response->redirect($data);
+                break;
+            case 'lrc':
             case 'lyric':
                 header("Content-Type: text/plain");
-                echo $data['lyric'] . "\n" . $data['tlyric'];
-                exit;
+                break;
             default:
-                $url = Typecho_Common::url('action/QPlayer2', Helper::options()->index);
-                $array = array();
-                foreach ($data as $v) {
-                    $prefix = $url . '?server=' . $v['source'];
-                    $array []= array(
-                        'name' => $v['name'],
-                        'artist' => implode(' / ', $v['artist']),
-                        'audio' => $prefix . '&type=audio&id=' . $v['url_id'],
-                        'cover' => $prefix . '&type=cover&id=' . $v['pic_id'],
-                        'lrc' => $prefix . '&type=lrc&id=' . $v['lyric_id'],
-                        'provider' => 'default'
-                    );
-                }
-                $data = $array;
+                header("Content-Type: application/json");
+                break;
         }
-
-        header("Content-Type: application/json");
-        echo json_encode($data);
+        echo $data;
     }
 
     private function test($server, $type, $id)
