@@ -12,7 +12,7 @@ use QPlayer\Cache\Cache;
  *
  * @package QPlayer2
  * @author Moeshin
- * @version 2.0.2
+ * @version 2.0.3
  * @link https://github.com/moeshin/QPlayer2-Typecho
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
