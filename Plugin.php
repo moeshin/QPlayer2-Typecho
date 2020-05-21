@@ -36,7 +36,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             throw new Typecho_Plugin_Exception(_t('缺少 openssl 或 mcrypt 拓展'));
         }
         Helper::addAction('QPlayer2', 'QPlayer2_Action');
-        Typecho_Plugin::factory('Widget_Archive')->header = array('QPlayer2_Plugin', 'header');
+        Typecho_Plugin::factory('Widget_Archive')->footer = array('QPlayer2_Plugin', 'footer');
     }
 
     /**
@@ -245,7 +245,7 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
         return Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
     }
 
-    public static function header()
+    public static function footer()
     {
         $plugin = self::getConfig();
         $url = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
