@@ -4,10 +4,11 @@
 
 ### 安装
 
-1. [下载](https://github.com/moeshin/QPlayer2-Typecho/releases/latest) 此工程
-2. 解压，并将文件夹重命名为 `QPlayer2`
-3. 将文件夹放到 Typecho 的插件目录，默认 `usr/plugins`
-4. 在控制台启用插件
+1. [下载](https://github.com/moeshin/QPlayer2-Typecho/releases/latest) 或克隆此工程
+2. 将文件夹重命名为 `QPlayer2`，并放到 Typecho 的插件目录，默认 `usr/plugins`
+3. 在控制台启用插件
+
+<!--more-->
 
 ### 歌曲列表
 
