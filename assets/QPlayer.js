@@ -33,7 +33,7 @@ window.QPlayer.init = function () {
 
     var $lyricsList, $listLi, isLoadPause, isPrevisionPlay, errorStartIndex, isAllError, setCoverTime;
 
-    q.version = '2.0.5';
+    q.version = '2.0.6';
     q.audio = audio;
     q.defaultProvider = q.defaultProvider || 'default';
     q.provider = q.provider || {};
@@ -458,24 +458,6 @@ window.QPlayer.init = function () {
         $list.scrollTop($list.scrollTop() - $list.offset().top + $li.offset().top + 1);
     }
 
-    function audioPlay() {
-        function catchError(e) {
-            if (e.name === 'AbortError') {
-                return;
-            }
-            console.error([e]);
-        }
-        try {
-            var promise = audio.play();
-            // noinspection JSUnresolvedVariable
-            if (typeof Promise === 'function' && promise instanceof Promise) {
-                promise.catch(catchError);
-            }
-        } catch (e) {
-            catchError(e);
-        }
-    }
-
     function getArtist(artist) {
         return Array.isArray(artist) ? artist.join(' / ') : artist;
     }
@@ -534,7 +516,7 @@ window.QPlayer.init = function () {
             }
             preloadCover(url);
             if (cache) {
-               current.cover = url;
+                current.cover = url;
             }
         });
         provider.call('lyrics', function (lrc) {
@@ -585,9 +567,12 @@ window.QPlayer.init = function () {
 
         onPlay();
         var current = q.current;
-        function error() {
+        function getIndex() {
             var list = v.list;
-            var _index = list[index] === current ? index : list.indexOf(current);
+            return list[index] === current ? index : list.indexOf(current);
+        }
+        function error() {
+            var _index = getIndex();
             if (_index === -1) {
                 console.warn('未找到索引');
                 return;
@@ -599,6 +584,32 @@ window.QPlayer.init = function () {
                 q.previous();
             } else {
                 q.next();
+            }
+        }
+        function audioPlay() {
+            function catchError(e) {
+                if (e.name === 'AbortError') {
+                    return;
+                }
+                error = true;
+                console.error([e]);
+            }
+            var error = false;
+            var promise = null;
+            try {
+                promise = audio.play();
+                if (typeof Promise === 'function' && promise instanceof Promise) {
+                    promise
+                        .then(function () {
+                            getListLi(getIndex()).removeClass('QPlayer-list-error');
+                        })
+                        .catch(catchError);
+                }
+            } catch (e) {
+                catchError(e);
+            }
+            if (!error && !(typeof Promise === 'function' && promise instanceof Promise)) {
+                getListLi(getIndex()).removeClass('QPlayer-list-error');
             }
         }
         getProvider(current).call('audio', function (url, cache) {
