@@ -11,8 +11,8 @@ use QPlayer\Cache\Cache;
  * 一款简洁小巧的 HTML5 底部悬浮音乐播放器
  *
  * @package QPlayer2
- * @author Moeshin
- * @version 2.0.4
+ * @author MoeShin
+ * @version 2.0.5
  * @link https://github.com/moeshin/QPlayer2-Typecho
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
