@@ -3,9 +3,12 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
     exit;
 }
 
-include_once 'libs/cache/Cache.php';
+require_once 'libs/Config.php';
+require_once 'libs/cache/Cache.php';
 
 use QPlayer\Cache\Cache;
+use QPlayer\Config;
+use QPlayer\General_Config;
 
 /**
  * 一款简洁小巧的 HTML5 底部悬浮音乐播放器
@@ -49,10 +52,10 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
      */
     public static function deactivate() {
         Helper::removeAction('QPlayer2');
-        $plugin = self::getConfig();
-        $cacheType = $plugin->cacheType;
+        $config = Config::getConfig();
+        $cacheType = $config->cacheType;
         if ($cacheType != 'none') {
-            Cache::UninstallWithPlugin($plugin);
+            Cache::UninstallWithConfig($config);
         }
     }
 
@@ -66,50 +69,29 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
     public static function config(Typecho_Widget_Helper_Form $form)
     {
         $action = Typecho_Common::url('action/QPlayer2', Helper::options()->index);
-        $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
-            'cdn',
+        $general = new Typecho_Widget_Helper_Form_Element_Checkbox(
+            'general',
             array(
-                'true' => _t('是'),
-                'false' => _t('否')
+                'cdn' => _t('使用 jsDelivr CDN 免费加速 js、css 文件'),
+                'jQuery' => _t('加载 jQuery。若冲突，请关闭'),
+                'isRotate' => _t('旋转封面'),
+                'isShuffle' => _t('随机播放')
             ),
-            'true',
-            _t('CDN'),
-            _t('使用 jsDelivr CDN 免费加速 js、css 文件')
-        ));
-        $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
-            'jQuery',
             array(
-                'true' => _t('是'),
-                'false' => _t('否')
+                'cdn',
+                'jQuery',
+                'isRotate',
+                'isShuffle'
             ),
-            'true',
-            _t('加载 jQuery'),
-            _t('若冲突，请关闭')
-        ));
+            _t('常规')
+        );
+        $form->addInput($general->multiMode());
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Text(
             'color',
             null,
             '#EE1122',
             _t('主题颜色'),
             _t('默认：<span style="color: #EE1122">#EE1122</span>')
-        ));
-        $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
-            'isRotate',
-            array(
-                'true' => _t('是'),
-                'false' => _t('否')
-            ),
-            'true',
-            _t('是否旋转封面')
-        ));
-        $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
-            'isShuffle',
-            array(
-                'true' => _t('是'),
-                'false' => _t('否')
-            ),
-            'true',
-            _t('是否随机播放')
         ));
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Radio(
             'bitrate',
@@ -172,7 +154,7 @@ HTML)
         $form->addInput(new Typecho_Widget_Helper_Form_Element_Text(
             'cacheHost',
             null,
-            '127.0.0.1',
+            '',
             _t('缓存地址'),
             _t('若使用数据库缓存，请忽略此项。默认：127.0.0.1')
         ));
@@ -212,14 +194,14 @@ HTML)
     {
         /** @var QPlayer\Cache\Cache $cache */
         if (!$isInit) {
-            $plugin = self::getConfig();
+            $config = Config::getConfig();
             $cacheTypeNow = $settings['cacheType'];
             $cacheArgs = array(
                 $cacheTypeNow,
                 $settings['cacheHost'],
                 $settings['cachePort']
             );
-            $cacheTypeLast = $plugin->cacheType;
+            $cacheTypeLast = $config->cacheType;
             $cacheBuild = array('QPlayer\Cache\Cache', 'Build');
             $isNotNoneNow = $cacheTypeNow != 'none';
             if ($cacheTypeNow != $cacheTypeLast) {
@@ -229,9 +211,9 @@ HTML)
                     $cache->test();
                 }
                 if ($cacheTypeLast != 'none') {
-                    Cache::UninstallWithPlugin($plugin);
+                    Cache::UninstallWithConfig($config);
                 }
-            } elseif ($isNotNoneNow && $cacheTypeNow != 'database' && self::compareCacheConfig($settings, $plugin)) {
+            } elseif ($isNotNoneNow && $cacheTypeNow != 'database' && self::compareCacheConfig($settings, $config)) {
                 $cache = call_user_func_array($cacheBuild, $cacheArgs);
                 $cache->test();
             }
@@ -239,7 +221,8 @@ HTML)
         Helper::configPlugin('QPlayer2', $settings);
     }
 
-    private static function compareCacheConfig($now, $last) {
+    private static function compareCacheConfig($now, $last)
+    {
         $keys = array('cacheHost', 'cachePort');
         $length = count($keys);
         for ($i = 0; $i < $length; ++$i) {
@@ -251,16 +234,14 @@ HTML)
         return false;
     }
 
-    private static function getConfig() {
-        return Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
-    }
-
     public static function footer()
     {
-        $plugin = self::getConfig();
+        require_once 'libs/General_Config.php';
+        $config = Config::getConfig();
+        $general = new General_Config($config);
         $url = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
-        $cdn = $plugin->cdn == 'true';
-        if ($plugin->jQuery == 'true') {
+        $cdn = $general->getBool('cdn');
+        if ($general->getBool('jQuery')) {
             $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery@' . self::verJQ . '/dist' : $url;
             echo '<script src="' . $prefix  . '/jquery.min.js"></script>';
         }
@@ -281,10 +262,10 @@ $(function () {
 var q = QPlayer;
 var plugin = q.plugin;
 plugin.api = "<?php echo Typecho_Common::url('action/QPlayer2', Helper::options()->index); ?>";
-plugin.setList(<?php echo $plugin->list; ?>);
-q.isRotate = <?php echo $plugin->isRotate; ?>;
-q.isShuffle = <?php echo $plugin->isShuffle; ?>;
-q.setColor("<?php echo $plugin->color; ?>");
+plugin.setList(<?php $config->list(); ?>);
+q.isRotate = <?php echo $general->getBoolString('isRotate'); ?>;
+q.isShuffle = <?php echo $general->getBoolString('isShuffle'); ?>;
+q.setColor("<?php $config->color(); ?>");
 });
 </script>
 <?php

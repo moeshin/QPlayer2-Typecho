@@ -4,9 +4,11 @@ if (!defined('__TYPECHO_ROOT_DIR__')) {
     exit;
 }
 
-include_once 'libs/cache/Cache.php';
+require_once 'libs/Config.php';
+require_once 'libs/cache/Cache.php';
 
 use QPlayer\Cache\Cache;
+use QPlayer\Config;
 
 class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
 {
@@ -19,12 +21,12 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
 
         $do = $request->get('do');
         if ($do == 'flush') {
-            $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
+            $config = Config::getConfig();
             try {
-                if ($plugin->cacheType == 'none') {
+                if ($config->cacheType == 'none') {
                    echo _t('没有配置缓存！');
                 } else {
-                    Cache::BuildWithPlugin($plugin)->flush();
+                    Cache::BuildWithConfig($config)->flush();
                     echo _t('操作成功！');
                 }
                 echo _t('5 秒后自动关闭！');
@@ -48,13 +50,13 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
         $m = new Metowolf\Meting($server);
         $m->format(true);
 
-        $plugin = Typecho_Widget::widget('Widget_Options')->plugin('QPlayer2');
-        $cookie = $plugin->cookie;
+        $config = Config::getConfig();
+        $cookie = $config->cookie;
         if ($server == 'netease' && !empty($cookie)) {
             $m->cookie($cookie);
         }
 
-        $cache = $plugin->cacheType == 'none' ? null : Cache::BuildWithPlugin($plugin);
+        $cache = $config->cacheType == 'none' ? null : Cache::BuildWithConfig($config);
         $key = $server . $type . $id;
         if ($cache != null) {
             $data = $cache->get($key);
@@ -65,7 +67,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
             switch ($type) {
                 case 'audio':
                     $type = 'url';
-                    $arg2 = $plugin->bitrate;
+                    $arg2 = $config->bitrate;
                     $expire = 1200;
                     break;
                 case 'cover':

@@ -53,17 +53,17 @@ abstract class Cache
     }
 
     /**
-     * @param $plugin
+     * @param $config
      * @return Cache
      * @throws Exception
      */
-    public static function BuildWithPlugin($plugin) {
-        return self::Build($plugin->cacheType, $plugin->cacheHost, $plugin->cachePort);
+    public static function BuildWithConfig($config) {
+        return self::Build($config->cacheType, $config->cacheHost, $config->cachePort);
     }
 
-    public static function UninstallWithPlugin($plugin) {
+    public static function UninstallWithConfig($config) {
         try {
-            $cache = self::BuildWithPlugin($plugin);
+            $cache = self::BuildWithConfig($config);
             $cache->uninstall();
         } catch (Exception $e) {
             echo "<pre>$e</pre>";
