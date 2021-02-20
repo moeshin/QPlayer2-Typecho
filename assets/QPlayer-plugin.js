@@ -1,5 +1,6 @@
 (function () {
     var q = QPlayer;
+    var $ = q.$;
     var plugin = q.plugin = {
         version: '1.0.0',
         setList: function (list) {

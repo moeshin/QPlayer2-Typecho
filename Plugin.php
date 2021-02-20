@@ -20,9 +20,6 @@ use QPlayer\General_Config;
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
 {
-    const verJQ = '3.5.1';
-    const verMarquee = '1.5.0';
-
     /**
      * 激活插件方法,如果激活失败,直接抛出异常
      *
@@ -73,14 +70,12 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
             'general',
             array(
                 'cdn' => _t('使用 jsDelivr CDN 免费加速 js、css 文件'),
-                'jQuery' => _t('加载 jQuery。若冲突，请关闭'),
                 'isRotate' => _t('旋转封面'),
                 'isShuffle' => _t('随机播放'),
                 'isAutoplay' => _t('自动播放')
             ),
             array(
                 'cdn',
-                'jQuery',
                 'isRotate',
                 'isShuffle'
             ),
@@ -242,20 +237,15 @@ JSON 格式的数组，具体属性请看 <a href="https://github.com/moeshin/QP
         require_once 'libs/General_Config.php';
         $config = Config::getConfig();
         $general = new General_Config($config);
-        $url = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
-        $cdn = $general->getBool('cdn');
-        if ($general->getBool('jQuery')) {
-            $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery@' . self::verJQ . '/dist' : $url;
-            echo '<script src="' . $prefix  . '/jquery.min.js"></script>';
-        }
-        $prefix = $cdn ? 'https://cdn.jsdelivr.net/npm/jquery.marquee@' . self::verMarquee : $url;
-        echo '<script src="' . $prefix . '/jquery.marquee.min.js"></script>';
-        if ($cdn) {
+        if ($general->getBool('cdn')) {
             $info = Typecho_Plugin::parseInfo(__FILE__);
             $prefix = 'https://cdn.jsdelivr.net/gh/moeshin/QPlayer2-Typecho@' . $info['version'] . '/assets';
         } else {
-            $prefix = $url;
+            $prefix = Typecho_Common::url('QPlayer2/assets', Helper::options()->pluginUrl);
         }
+        echo '<script src="' . $prefix . '/QPlayer.min.js"></script>';
+        echo '<script src="' . $prefix . '/QPlayer-plugin.js"></script>';
+        echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.min.css">';
 ?>
 <script>
 (function () {
@@ -266,21 +256,14 @@ JSON 格式的数组，具体属性请看 <a href="https://github.com/moeshin/QP
     q.isRotate = <?php echo $general->getBoolString('isRotate'); ?>;
     q.isShuffle = <?php echo $general->getBoolString('isShuffle'); ?>;
     q.isAutoplay = <?php echo $general->getBoolString('isAutoplay'); ?>;
+    q.$(function () {
+        var q = QPlayer;
+        var plugin = q.plugin;
+        plugin.api = "<?php echo Typecho_Common::url('action/QPlayer2', Helper::options()->index); ?>";
+        plugin.setList(<?php $config->list(); ?>);
+        q.setColor("<?php $config->color(); ?>");
+    });
 })();
-</script>
-<?php
-        echo '<script src="' . $prefix . '/QPlayer.js"></script>';
-        echo '<script src="' . $prefix . '/QPlayer-plugin.js"></script>';
-        echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.css">';
-?>
-<script>
-$(function () {
-    var q = QPlayer;
-    var plugin = q.plugin;
-    plugin.api = "<?php echo Typecho_Common::url('action/QPlayer2', Helper::options()->index); ?>";
-    plugin.setList(<?php $config->list(); ?>);
-    q.setColor("<?php $config->color(); ?>");
-});
 </script>
 <?php
     }
