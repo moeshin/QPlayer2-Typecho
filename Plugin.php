@@ -75,7 +75,8 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
                 'cdn' => _t('使用 jsDelivr CDN 免费加速 js、css 文件'),
                 'jQuery' => _t('加载 jQuery。若冲突，请关闭'),
                 'isRotate' => _t('旋转封面'),
-                'isShuffle' => _t('随机播放')
+                'isShuffle' => _t('随机播放'),
+                'isAutoplay' => _t('自动播放')
             ),
             array(
                 'cdn',
@@ -255,19 +256,30 @@ JSON 格式的数组，具体属性请看 <a href="https://github.com/moeshin/QP
         } else {
             $prefix = $url;
         }
+?>
+<script>
+(function () {
+    if (!window.QPlayer) {
+        window.QPlayer = {};
+    }
+    var q = window.QPlayer;
+    q.isRotate = <?php echo $general->getBoolString('isRotate'); ?>;
+    q.isShuffle = <?php echo $general->getBoolString('isShuffle'); ?>;
+    q.isAutoplay = <?php echo $general->getBoolString('isAutoplay'); ?>;
+})();
+</script>
+<?php
         echo '<script src="' . $prefix . '/QPlayer.js"></script>';
         echo '<script src="' . $prefix . '/QPlayer-plugin.js"></script>';
         echo '<link rel="stylesheet" href="' . $prefix . '/QPlayer.css">';
 ?>
 <script>
 $(function () {
-var q = QPlayer;
-var plugin = q.plugin;
-plugin.api = "<?php echo Typecho_Common::url('action/QPlayer2', Helper::options()->index); ?>";
-plugin.setList(<?php $config->list(); ?>);
-q.isRotate = <?php echo $general->getBoolString('isRotate'); ?>;
-q.isShuffle = <?php echo $general->getBoolString('isShuffle'); ?>;
-q.setColor("<?php $config->color(); ?>");
+    var q = QPlayer;
+    var plugin = q.plugin;
+    plugin.api = "<?php echo Typecho_Common::url('action/QPlayer2', Helper::options()->index); ?>";
+    plugin.setList(<?php $config->list(); ?>);
+    q.setColor("<?php $config->color(); ?>");
 });
 </script>
 <?php
