@@ -15,7 +15,7 @@ use QPlayer\General_Config;
  *
  * @package QPlayer2
  * @author MoeShin
- * @version 2.0.8
+ * @version 2.0.9
  * @link https://github.com/moeshin/QPlayer2-Typecho
  */
 class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
