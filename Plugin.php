@@ -72,12 +72,16 @@ class QPlayer2_Plugin extends Typecho_Widget implements Typecho_Plugin_Interface
                 'cdn' => _t('使用 jsDelivr CDN 免费加速 js、css 文件'),
                 'isRotate' => _t('旋转封面'),
                 'isShuffle' => _t('随机播放'),
-                'isAutoplay' => _t('自动播放')
+                'isAutoplay' => _t('自动播放'),
+                'isPauseOtherWhenPlay' => _t('在播放时暂停其他媒体'),
+                'isPauseWhenOtherPlay' => _t('在其他媒体播放时暂停')
             ),
             array(
                 'cdn',
                 'isRotate',
-                'isShuffle'
+                'isShuffle',
+                'isPauseOtherWhenPlay',
+                'isPauseWhenOtherPlay'
             ),
             _t('常规')
         );
@@ -249,13 +253,12 @@ JSON 格式的数组，具体属性请看 <a href="https://github.com/moeshin/QP
 ?>
 <script>
 (function () {
-    if (!window.QPlayer) {
-        window.QPlayer = {};
-    }
     var q = window.QPlayer;
     q.isRotate = <?php echo $general->getBoolString('isRotate'); ?>;
     q.isShuffle = <?php echo $general->getBoolString('isShuffle'); ?>;
     q.isAutoplay = <?php echo $general->getBoolString('isAutoplay'); ?>;
+    q.isPauseOtherWhenPlay = <?php echo $general->getBoolString('isPauseOtherWhenPlay'); ?>;
+    q.isPauseWhenOtherPlay = <?php echo $general->getBoolString('isPauseWhenOtherPlay'); ?>;
     q.$(function () {
         var q = QPlayer;
         var plugin = q.plugin;
