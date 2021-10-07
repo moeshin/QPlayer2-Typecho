@@ -72,7 +72,7 @@ class QPlayer2_Action extends Typecho_Widget implements Widget_Interface_Do
                     break;
                 case 'cover':
                     $type = 'pic';
-                    $arg2 = 64;
+                    $arg2 = 300;
                     $expire = 86400;
                     break;
                 case 'lrc':
